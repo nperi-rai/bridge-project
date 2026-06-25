@@ -1,0 +1,50 @@
+/* Copyright (c) 2025-2026 Robotics and AI Institute LLC dba RAI Institute. */
+/* Released under the MIT License (see ../../LICENSE). */
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.publication-title {
+  font-family: 'Google Sans', sans-serif;
+}
+
+.publication-authors {
+  margin: 0.5rem 0;
+}
+
+.publication-authors .author-block {
+  margin-right: 0.75rem;
+}
+
+.publication-links {
+  margin-top: 1rem;
+}
+
+.publication-links .link-block {
+  margin: 0.25rem;
+  display: inline-block;
+}
+
+.hero.teaser {
+  padding-bottom: 3rem;
+}
+
+.hero.teaser video {
+  width: 100%;
+  border-radius: 4px;
+}
+
+footer.footer {
+  padding: 2rem 1.5rem;
+  background-color: #fafafa;
+}
+
+.results-table tr.is-selected td {
+  background-color: #2366d1;
+  color: #fff;
+}
+
+.task-img img {
+  object-fit: cover;
+}

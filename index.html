@@ -1,0 +1,549 @@
+<!--
+  Copyright (c) 2025-2026 Robotics and AI Institute LLC dba RAI Institute.
+  Released under the MIT License (see ../LICENSE).
+  Page template adapted from the Nerfies project page
+  (https://github.com/nerfies/nerfies.github.io), used under
+  Creative Commons Attribution-ShareAlike 4.0 International.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bridging Handheld and Teleoperated Supervision for Contact-Rich Manipulation via State-Gated Experts</title>
+
+  <meta name="description" content="State-gated experts for combining handheld (DM-UMI) and teleoperated demonstrations on contact-rich manipulation tasks.">
+  <meta name="keywords" content="imitation learning, UMI, teleoperation, diffusion policy, contact-rich manipulation">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
+</head>
+
+<body>
+
+<!-- ====================== Hero / Title ====================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">
+            Bridging Handheld and Teleoperated Supervision for Contact-Rich Manipulation via State-Gated Experts
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Vidullan Surendran<sup>1</sup>,</span>
+            <span class="author-block">Neehar Peri<sup>1,2</sup>,</span>
+            <span class="author-block">David Watkins<sup>1</sup></span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup>RAI Institute</span>
+            <span class="author-block"><sup>2</sup>Carnegie Mellon University</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="./corl26_bridge.pdf" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>PDF</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-microchip"></i></span>
+                  <span>Hardware (DM-UMI)</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-database"></i></span>
+                  <span>Datasets</span>
+                </a>
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== Teaser Video ====================== -->
+<section class="hero teaser" id="teaser">
+  <div class="container is-max-desktop">
+    <video poster="./static/images/teaser_poster.jpg" controls muted preload="none">
+      <source src="./static/videos/teaser.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</section>
+
+<!-- ====================== Abstract ====================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Handheld data collection systems, such as the Universal Manipulation
+            Interface (UMI), enable scalable data collection across diverse
+            environments but only capture <em>observed</em> actions rather than
+            the <em>desired</em> actions executed by a robot controller. In
+            contrast, teleoperation captures desired actions directly, but is
+            prohibitively time-consuming to collect. We revisit this trade-off
+            through the lens of <em>label validity</em> across task phases. We
+            observe that handheld trajectories provide valid supervision in
+            tolerant, free-space phases, but lack dynamic feasibility in
+            contact-sensitive phases, where tracking observed trajectories at
+            high stiffness produces large, unsafe contact forces. We study the
+            interaction between these two supervision types for contact-rich
+            manipulation and find that training policies that combine handheld
+            data with a small number of targeted teleoperated demonstrations
+            provides an efficient hybrid strategy. Specifically, rather than
+            teleoperating the entire task, we only collect partial teleoperated
+            demonstrations for task segments where base handheld policies fail.
+            However, naively mixing handheld and teleoperated phase-specific
+            data yields worse performance than training on handheld data alone.
+            To address this mismatch between observed and desired supervision,
+            we propose <strong>Bi-modal Routing for Imitation Data via Gated
+            Experts (BRIDGE)</strong>, a mixture of diffusion policy experts
+            that routes between specialist task phase heads conditioned on the
+            current robot state. Notably, our approach produces measurably
+            lower end-effector forces under contact and improves success rates
+            over handheld-only baselines by up to <strong>36.7%</strong> across
+            three contact-rich manipulation tasks.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== Key Insight ====================== -->
+<section class="section" id="insight">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Key Insight: Action Validity</h2>
+    <div class="content has-text-justified">
+      <p>
+        Handheld devices record <em>observed</em> actions (where the
+        end-effector actually went), while a robot controller is driven by
+        <em>desired</em> actions (the reference it is commanded to track). In
+        free-space, <strong>tolerant</strong> phases the two coincide, so
+        observed handheld labels are valid supervision. In
+        <strong>contact-sensitive</strong> phases they diverge: the desired
+        position drives into the contact surface while the observed position is
+        held above it. Tracking the observed trajectory at the stiffness needed
+        to follow it then produces large, unsafe contact forces. This is why
+        handheld-only labels fail precisely where contact matters &mdash; and
+        why targeted teleoperation, which captures desired actions directly, is
+        uniquely valid there.
+      </p>
+    </div>
+    <figure class="image">
+      <img src="./static/images/action_validity.png"
+           alt="Action validity across task phases and implied contact force under two stiffness regimes">
+      <figcaption class="has-text-centered">
+        <strong>Action Validity Under Contact.</strong>
+        <em>Left:</em> observed and desired end-effector trajectories agree in
+        tolerant phases but diverge persistently during contact, where handheld
+        labels become invalid. <em>Right:</em> the same gap becomes contact
+        force via \(F = K(x_d - x)\) &mdash; high stiffness tracks closely but
+        spikes to ~10.2&nbsp;N, while compliant stiffness peaks at ~2.6&nbsp;N
+        but cannot track through contact.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ====================== Method ====================== -->
+<section class="section" id="method">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Method</h2>
+
+    <div class="content has-text-justified">
+      <p>
+        We present a dual-mode data collection setup for contact-rich
+        manipulation and introduce <strong>BRIDGE</strong>, a mixture-of-experts
+        policy that jointly learns from handheld and teleoperated supervision.
+      </p>
+    </div>
+
+    <h3 class="title is-4">DM-UMI: Dual-Mode Data Collection Device</h3>
+    <div class="content has-text-justified">
+      <p>
+        UMI relies on offline monocular SLAM for trajectory reconstruction and
+        ArUco-tag detection for gripper-width estimation. While this enables
+        in-the-wild data collection, it requires offline processing for camera
+        pose and gripper width &mdash; both incompatible with online
+        teleoperation. We design <strong>Dual-Mode UMI (DM-UMI)</strong> to
+        support both modes from a single device:
+      </p>
+      <ul>
+        <li>An <strong>XVISIO DS80 SLAM camera</strong> replaces offline SLAM,
+            providing 6-DoF pose at 500&nbsp;Hz via onboard stereo
+            visual-inertial odometry.</li>
+        <li>A <strong>linkage-based gripper</strong> with magnetic position
+            sensors replaces the rack-and-pinion mechanism for smoother,
+            backlash-free actuation and precise width measurement.</li>
+        <li>An <strong>IDS RGB fisheye camera</strong> with low-level camera
+            control replaces the GoPro + HDMI-capture-card path, reducing
+            latency and enabling tight time synchronization. The fisheye optics
+            match the GoPro&rsquo;s, allowing interoperation with public UMI
+            datasets.</li>
+      </ul>
+      <figure class="image">
+        <img src="./static/images/pipeline.png" alt="Dual-mode data collection pipeline">
+        <figcaption class="has-text-centered">
+          <strong>Dual-Mode Data Collection Pipeline.</strong>
+          We collect a <code>base</code> dataset via handheld mode, identify
+          failure modes, then collect a targeted <code>support</code> dataset
+          via teleoperation. The <code>base</code> policy, <code>support</code>
+          head, and router compose the BRIDGE model.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h3 class="title is-4">Dataset Collection</h3>
+    <div class="content has-text-justified">
+      <ul>
+        <li>The <strong><code>base</code> dataset</strong> is collected in
+            handheld mode across diverse environments, capturing only observed
+            actions. Broad coverage, low cost per trajectory.</li>
+        <li>The <strong><code>support</code> dataset</strong> is collected in
+            teleoperated mode, targeted at <code>base</code>-policy failure
+            modes. It captures both observed and desired actions, isolating
+            embodiment-specific effects (controller dynamics, kinematics,
+            contact dynamics, grasp stability).</li>
+      </ul>
+    </div>
+
+    <h3 class="title is-4">Stage 1: Base Policy Training</h3>
+    <div class="content has-text-justified">
+      <p>
+        Our base policy extends Diffusion Policy. We retain the full set of
+        spatial patch tokens from a DINOv2 vision encoder (rather than only the
+        CLS token) to preserve spatial structure needed for contact-rich
+        reasoning. A PerceiverIO-style aggregation reduces \(V \in
+        \mathbb{R}^{B \times N \times D}\) tokens to a small set of learnable
+        queries \(Q \in \mathbb{R}^{B \times M \times D}\), \(M \ll N\), via
+        stacked cross-attention. State inputs (end-effector pose, gripper
+        width) are projected and cross-attended with the vision tokens to
+        produce the conditioning latent \(Z_\text{latent}\), which feeds a
+        temporal diffusion head trained with the standard diffusion loss on
+        the <code>base</code> dataset.
+      </p>
+    </div>
+
+    <h3 class="title is-4">Stage 2: Support Head Training</h3>
+    <div class="content has-text-justified">
+      <p>
+        With the base expert \(\pi_b\) and shared vision encoder frozen, we
+        train a <code>support</code> latent adapter \(\phi_s\) and head
+        \(\pi_s\) on the <code>support</code> dataset. The action target is
+        the desired trajectory, \(\hat{a}^s_{t:t+H} = \pi_s(c^b_t)\). The
+        support expert is optimized independently with its own diffusion loss.
+      </p>
+    </div>
+
+    <h3 class="title is-4">Stage 3: Router Training</h3>
+    <div class="content has-text-justified">
+      <p>
+        An MLP gate \(G_\psi(z_t)\) routes observations to the appropriate
+        expert. To label samples, we extract intermediate latents
+        \(Z_\text{latent}\) from the base policy on both datasets, filter
+        overlapping <code>base</code> latents using a \(k\)-NN classifier
+        (\(k=16\), distance \(\epsilon=0.8\)), then define a support score:
+      </p>
+      <p>
+        $$\sigma_{-} = \cos(z, z_b),\ z_b \in B_b, \qquad \sigma_{+} = \cos(z, z_s),\ z_s \in B_s$$
+        $$\rho(z) = (\sigma_{+} - \sigma_{-}) > \eta$$
+      </p>
+      <p>
+        We distill the \(k\)-NN classifier into \(G_\psi\) with binary
+        cross-entropy on \(\rho(z_t)\).
+      </p>
+    </div>
+
+    <h3 class="title is-4">Inference</h3>
+    <div class="content has-text-justified">
+      <p>
+        At inference, each observation \(o_t\) is encoded into a shared
+        \(Z_\text{vision}\) used to produce the router latent. The router
+        emits gating predictions \(g_{t:t+H}\). Given threshold \(\eta\), we
+        hard-switch between experts:
+      </p>
+      <p>
+        $$\hat{a}^b_{t+j} = \pi_b(\phi_b(Z_\text{vision})), \qquad \hat{a}^s_{t+j} = \pi_s(\phi_s(Z_\text{vision}))$$
+        $$m_{t+j} = \mathbb{I}[g_{t+j} > \eta], \qquad \hat{a}_{t+j} = (1 - m_{t+j})\hat{a}^b_{t+j} + m_{t+j}\,\hat{a}^s_{t+j}$$
+      </p>
+      <p>
+        Unlike residual learning &mdash; which requires every expert to model
+        the entire task &mdash; the hard switch lets each expert specialize
+        locally.
+      </p>
+    </div>
+
+    <figure class="image" style="margin-top: 2rem;">
+      <img src="./static/images/model_arch.png" alt="BRIDGE model architecture">
+      <figcaption class="has-text-centered">
+        <strong>Model Architecture.</strong>
+        BRIDGE extends Diffusion Policy to dynamically route between predicting
+        observed and desired actions. We sequentially train the
+        <span style="color: #1f77b4;">base model</span>, collect targeted
+        teleoperated demonstrations to train the
+        <span style="color: #2ca02c;">support head</span>, and finally train
+        the <span style="color: #9467bd;">router</span>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ====================== Tasks ====================== -->
+<section class="section" id="tasks">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Tasks</h2>
+    <div class="content has-text-justified">
+      <p>
+        We evaluate on three precise, contact-rich tasks on a Franka FR3 arm
+        running a Cartesian impedance controller. Each concentrates difficulty
+        in a short contact-sensitive phase bracketed by free-space motion.
+      </p>
+    </div>
+    <div class="columns">
+      <div class="column has-text-centered">
+        <figure class="image is-square task-img">
+          <img src="./static/images/task_pulley.jpg" alt="NIST pulley routing task">
+        </figure>
+        <p style="margin-top: 0.5rem;"><strong>NIST Pulley Routing</strong></p>
+        <p class="is-size-7">Grasp a deformable O-ring and route it around the
+          pulleys while maintaining constant tension (NIST Assembly Task
+          Board&nbsp;#2).</p>
+      </div>
+      <div class="column has-text-centered">
+        <figure class="image is-square task-img">
+          <img src="./static/images/task_pipe.jpg" alt="Pipe insertion task">
+        </figure>
+        <p style="margin-top: 0.5rem;"><strong>Pipe Insertion</strong></p>
+        <p class="is-size-7">Grasp a pipe and insert it into a tight-tolerance
+          opening, requiring reliable grasping, 6-DoF alignment, and
+          force-aware insertion.</p>
+      </div>
+      <div class="column has-text-centered">
+        <figure class="image is-square task-img">
+          <img src="./static/images/task_battery.jpg" alt="Battery insertion task">
+        </figure>
+        <p style="margin-top: 0.5rem;"><strong>Battery Insertion</strong></p>
+        <p class="is-size-7">Pick up an AA battery and seat it in a spring-loaded
+          compartment, keeping the spring compressed while the battery is
+          seated.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== Results ====================== -->
+<section class="section" id="results">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Results</h2>
+    <div class="content has-text-justified">
+      <p>
+        BRIDGE consistently outperforms handheld and naive-mixing baselines and
+        recovers much of the gap to a full-teleoperation upper bound &mdash;
+        even though its sparse <code>support</code> data covers under 15% of the
+        end-effector path length. Naively mixing observed and desired labels in
+        a single head <em>degrades</em> performance, often below the
+        handheld-only policy, motivating state-gated routing instead.
+      </p>
+    </div>
+
+    <h3 class="title is-5">Task Success Rate</h3>
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th class="has-text-centered">NIST Pulley</th>
+            <th class="has-text-centered">Pipe Insertion</th>
+            <th class="has-text-centered">Battery Insertion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Base</code> Policy (Handheld)</td>
+            <td class="has-text-centered">44.0%</td>
+            <td class="has-text-centered">13.3%</td>
+            <td class="has-text-centered">10.0%</td>
+          </tr>
+          <tr>
+            <td>Naive Mix</td>
+            <td class="has-text-centered">0.0%</td>
+            <td class="has-text-centered">6.7%</td>
+            <td class="has-text-centered">0.0%</td>
+          </tr>
+          <tr class="is-selected">
+            <td><strong>BRIDGE (Ours)</strong></td>
+            <td class="has-text-centered"><strong>76.0%</strong></td>
+            <td class="has-text-centered"><strong>50.0%</strong></td>
+            <td class="has-text-centered"><strong>33.3%</strong></td>
+          </tr>
+          <tr>
+            <td><code>Base</code> Policy (Teleoperated)<sup>&dagger;</sup></td>
+            <td class="has-text-centered">84.0%</td>
+            <td class="has-text-centered">63.3%</td>
+            <td class="has-text-centered">40.0%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="is-size-7">
+      <sup>&dagger;</sup>Full-task teleoperation upper bound, collected under an
+      approximately time-matched data budget. Each task is evaluated over
+      25&ndash;30 rollouts across shifted fixture positions.
+    </p>
+
+    <h3 class="title is-5" style="margin-top: 2rem;">Dataset Statistics</h3>
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th class="has-text-centered"><code>Base</code> #</th>
+            <th class="has-text-centered"><code>Support</code> #</th>
+            <th class="has-text-centered"><code>Teleop</code> #</th>
+            <th class="has-text-centered">Support Temporal %</th>
+            <th class="has-text-centered">Support Dist. %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NIST Pulley Routing</td>
+            <td class="has-text-centered">201</td>
+            <td class="has-text-centered">50</td>
+            <td class="has-text-centered">60</td>
+            <td class="has-text-centered">37.8%</td>
+            <td class="has-text-centered">7.4%</td>
+          </tr>
+          <tr>
+            <td>Pipe Insertion</td>
+            <td class="has-text-centered">100</td>
+            <td class="has-text-centered">81</td>
+            <td class="has-text-centered">60</td>
+            <td class="has-text-centered">24.5%</td>
+            <td class="has-text-centered">3.4%</td>
+          </tr>
+          <tr>
+            <td>Battery Insertion</td>
+            <td class="has-text-centered">290</td>
+            <td class="has-text-centered">59</td>
+            <td class="has-text-centered">100</td>
+            <td class="has-text-centered">61.1%</td>
+            <td class="has-text-centered">14.9%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="is-size-7">
+      <code>support</code> data spans a large temporal fraction (slower
+      teleoperation rate) yet remains spatially sparse, covering only a small
+      fraction of the end-effector path length.
+    </p>
+  </div>
+</section>
+
+<!-- ====================== Router Analysis ====================== -->
+<section class="section" id="router">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Router Analysis</h2>
+    <div class="content has-text-justified">
+      <p>
+        On a held-out teleoperated set with manually labeled support phases
+        (pipe insertion), the MLP router reaches <strong>99.0% recall</strong>
+        and <strong>69.0% precision</strong>, favoring early
+        <code>support</code> activation over missed handoffs. A t-SNE of the
+        router latents shows clear separation between <code>base</code> and
+        <code>support</code> states, with false positives concentrated near the
+        support-manifold boundary (transition states) rather than unrelated
+        <code>base</code> states &mdash; consistent with the nearest-neighbor
+        design.
+      </p>
+    </div>
+    <figure class="image">
+      <img src="./static/images/router_analysis.png"
+           alt="Router precision-recall curve and t-SNE latent embedding">
+      <figcaption class="has-text-centered">
+        <strong>Router Analysis.</strong> Precision-recall curve (left) and
+        t-SNE of router latents (right) for the pipe insertion task.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ====================== Paper ====================== -->
+<section class="section" id="paper">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Paper</h2>
+    <div class="content">
+      <p>
+        19 pages, including appendix. Scroll horizontally to flip through
+        pages.
+      </p>
+    </div>
+    <div style="overflow-x: auto; border: 1px solid #eee; border-radius: 4px;">
+      <img src="./static/images/paper_strip.jpg"
+           alt="All pages of the BRIDGE paper rendered side by side"
+           style="display: block; height: 412px; max-width: none;">
+    </div>
+  </div>
+</section>
+
+<!-- ====================== BibTeX ====================== -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@misc{surendran2026bridge,
+  title  = {Bridging Handheld and Teleoperated Supervision for Contact-Rich Manipulation via State-Gated Experts},
+  author = {Surendran, Vidullan and Peri, Neehar and Watkins, David},
+  year   = {2026},
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <p>
+        &copy; 2025-2026 Robotics and AI Institute LLC dba RAI Institute.
+        Page source released under the
+        <a href="https://github.com/rai-inst/umi-dual-mode/blob/main/LICENSE">MIT License</a>.
+      </p>
+      <p>
+        Page template adapted from the
+        <a href="https://github.com/nerfies/nerfies.github.io">Nerfies project page</a>,
+        used under a Creative Commons Attribution-ShareAlike 4.0 International License.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
